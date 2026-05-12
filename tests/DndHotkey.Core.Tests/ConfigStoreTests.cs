@@ -18,6 +18,19 @@ public sealed class ConfigStoreTests
     }
 
     [Fact]
+    public void LoadOrCreate_WritesReadableDefaultHotkey()
+    {
+        using var directory = TempDirectory.Create();
+        var store = new ConfigStore(directory.Path);
+
+        store.LoadOrCreate();
+
+        var json = File.ReadAllText(store.ConfigPath);
+        Assert.Contains("\"hotkey\": \"Ctrl+Alt+D\"", json);
+        Assert.DoesNotContain("\\u002B", json);
+    }
+
+    [Fact]
     public void LoadOrCreate_ReadsExistingConfig()
     {
         using var directory = TempDirectory.Create();
