@@ -14,7 +14,7 @@ public static partial class SemanticVersionCalculator
             ReleaseBumpKind.Major => new SemanticVersion(current.Major + 1, 0, 0),
             ReleaseBumpKind.Minor => new SemanticVersion(current.Major, current.Minor + 1, 0),
             ReleaseBumpKind.Patch => new SemanticVersion(current.Major, current.Minor, current.Patch + 1),
-            _                     => null
+            _ => null
         };
     }
 

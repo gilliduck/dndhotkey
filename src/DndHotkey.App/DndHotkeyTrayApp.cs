@@ -206,9 +206,9 @@ internal sealed class DndHotkeyTrayApp : IDisposable
 
         notifyIcon.Text = dndController.GetState() switch
         {
-            DndState.Enabled  => "DndHotkey - Do Not Disturb enabled",
+            DndState.Enabled => "DndHotkey - Do Not Disturb enabled",
             DndState.Disabled => "DndHotkey - Do Not Disturb disabled",
-            _                 => "DndHotkey - Do Not Disturb state unknown"
+            _ => "DndHotkey - Do Not Disturb state unknown"
         };
     }
 }

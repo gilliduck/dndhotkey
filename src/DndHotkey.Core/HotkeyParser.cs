@@ -81,11 +81,11 @@ public static class HotkeyParser
     {
         modifier = token.ToUpperInvariant() switch
         {
-            "ALT"                        => HotkeyModifiers.Alt,
-            "CTRL" or "CONTROL"          => HotkeyModifiers.Control,
-            "SHIFT"                      => HotkeyModifiers.Shift,
+            "ALT" => HotkeyModifiers.Alt,
+            "CTRL" or "CONTROL" => HotkeyModifiers.Control,
+            "SHIFT" => HotkeyModifiers.Shift,
             "WIN" or "WINDOWS" or "META" => HotkeyModifiers.Windows,
-            _                            => HotkeyModifiers.None
+            _ => HotkeyModifiers.None
         };
         return modifier is not HotkeyModifiers.None;
     }
