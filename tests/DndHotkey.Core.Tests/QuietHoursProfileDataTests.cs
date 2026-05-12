@@ -3,6 +3,14 @@ namespace DndHotkey.Core.Tests;
 public sealed class QuietHoursProfileDataTests
 {
     [Fact]
+    public void Build_CreatesDetectableDisabledProfile()
+    {
+        var data = QuietHoursProfileData.Build(DndState.Disabled, DateTimeOffset.UnixEpoch);
+
+        Assert.Equal(DndState.Disabled, QuietHoursProfileData.DetectState(data));
+    }
+
+    [Fact]
     public void Build_CreatesDetectableEnabledProfile()
     {
         var data = QuietHoursProfileData.Build(DndState.Enabled, DateTimeOffset.UnixEpoch);
@@ -11,11 +19,11 @@ public sealed class QuietHoursProfileDataTests
     }
 
     [Fact]
-    public void Build_CreatesDetectableDisabledProfile()
+    public void SetState_BuildsProfileWhenInputIsUnknown()
     {
-        var data = QuietHoursProfileData.Build(DndState.Disabled, DateTimeOffset.UnixEpoch);
+        var updated = QuietHoursProfileData.SetState([1, 2, 3], DndState.Disabled, DateTimeOffset.UnixEpoch);
 
-        Assert.Equal(DndState.Disabled, QuietHoursProfileData.DetectState(data));
+        Assert.Equal(DndState.Disabled, QuietHoursProfileData.DetectState(updated));
     }
 
     [Fact]
@@ -28,13 +36,5 @@ public sealed class QuietHoursProfileDataTests
 
         Assert.Equal(DndState.Enabled, QuietHoursProfileData.DetectState(updated));
         Assert.Equal(updatedAt.ToFileTime(), BitConverter.ToInt64(updated, 4));
-    }
-
-    [Fact]
-    public void SetState_BuildsProfileWhenInputIsUnknown()
-    {
-        var updated = QuietHoursProfileData.SetState([1, 2, 3], DndState.Disabled, DateTimeOffset.UnixEpoch);
-
-        Assert.Equal(DndState.Disabled, QuietHoursProfileData.DetectState(updated));
     }
 }

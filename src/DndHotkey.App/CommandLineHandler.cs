@@ -2,6 +2,7 @@ using System.Text;
 using System.Windows;
 using DndHotkey.Core;
 using Directory = System.IO.Directory;
+using MessageBox = System.Windows.MessageBox;
 
 namespace DndHotkey.App;
 
@@ -71,13 +72,13 @@ internal static class CommandLineHandler
     private static void ShowDiagnostics(ConfigStore configStore, IDndController dndController)
     {
         var builder = new StringBuilder()
-            .AppendLine("DndHotkey diagnostics")
-            .AppendLine()
-            .AppendLine($"Config file: {configStore.ConfigPath}")
-            .AppendLine($"Config folder: {configStore.ConfigDirectory}")
-            .AppendLine($"Detected DND state: {dndController.GetState()}")
-            .AppendLine($"Process: {Environment.ProcessPath}");
+                      .AppendLine("DndHotkey diagnostics")
+                      .AppendLine()
+                      .AppendLine($"Config file: {configStore.ConfigPath}")
+                      .AppendLine($"Config folder: {configStore.ConfigDirectory}")
+                      .AppendLine($"Detected DND state: {dndController.GetState()}")
+                      .AppendLine($"Process: {Environment.ProcessPath}");
 
-        System.Windows.MessageBox.Show(builder.ToString(), "DndHotkey", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show(builder.ToString(), "DndHotkey", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 }

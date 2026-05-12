@@ -1,6 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using System.Windows.Media.Effects;
 using DndHotkey.Core;
 using Media = System.Windows.Media;
 
@@ -29,7 +29,7 @@ internal sealed class OverlayWindow : Window
             CornerRadius = new CornerRadius(8),
             Padding = new Thickness(22, 16, 22, 16),
             BorderThickness = new Thickness(1),
-            Effect = new System.Windows.Media.Effects.DropShadowEffect
+            Effect = new DropShadowEffect
             {
                 BlurRadius = 18,
                 ShadowDepth = 3,

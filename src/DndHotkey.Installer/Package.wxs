@@ -1,61 +1,61 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-  <Package
-    Name="DndHotkey"
-    Manufacturer="Dustyn Gilliland"
-    Version="$(var.ProductVersion)"
-    UpgradeCode="{D9F2C4C9-65EE-41C0-B37A-2DD9791A862D}"
-    Scope="perUser">
-    <SummaryInformation Description="DndHotkey installer" Manufacturer="Dustyn Gilliland" />
-    <MajorUpgrade DowngradeErrorMessage="A newer version of DndHotkey is already installed." />
-    <MediaTemplate EmbedCab="yes" />
-
-    <StandardDirectory Id="LocalAppDataFolder">
-      <Directory Id="ProgramsFolder" Name="Programs">
-        <Directory Id="INSTALLFOLDER" Name="DndHotkey" />
-      </Directory>
-    </StandardDirectory>
-
-    <StandardDirectory Id="ProgramMenuFolder">
-      <Directory Id="ApplicationProgramsFolder" Name="DndHotkey" />
-    </StandardDirectory>
-
-    <Feature Id="MainFeature" Title="DndHotkey" Level="1">
-      <ComponentGroupRef Id="ApplicationComponents" />
-      <ComponentRef Id="StartupRegistration" />
-      <ComponentRef Id="StartMenuShortcut" />
-    </Feature>
-
-    <ComponentGroup Id="ApplicationComponents" Directory="INSTALLFOLDER">
-      <Component Id="ApplicationExecutable">
-        <File Id="DndHotkeyExe" Source="$(var.PublishDir)\DndHotkey.App.exe" KeyPath="yes" />
-      </Component>
-    </ComponentGroup>
-
-    <Component Id="StartupRegistration" Directory="INSTALLFOLDER">
-      <RegistryValue
-        Root="HKCU"
-        Key="Software\Microsoft\Windows\CurrentVersion\Run"
+    <Package
         Name="DndHotkey"
-        Type="string"
-        Value="&quot;[INSTALLFOLDER]DndHotkey.App.exe&quot;"
-        KeyPath="yes" />
-    </Component>
+        Manufacturer="Dustyn Gilliland"
+        Version="$(var.ProductVersion)"
+        UpgradeCode="{D9F2C4C9-65EE-41C0-B37A-2DD9791A862D}"
+        Scope="perUser">
+        <SummaryInformation Description="DndHotkey installer" Manufacturer="Dustyn Gilliland"/>
+        <MajorUpgrade DowngradeErrorMessage="A newer version of DndHotkey is already installed."/>
+        <MediaTemplate EmbedCab="yes"/>
 
-    <Component Id="StartMenuShortcut" Directory="ApplicationProgramsFolder">
-      <Shortcut
-        Id="ApplicationStartMenuShortcut"
-        Name="DndHotkey"
-        Description="Toggle Windows Do Not Disturb with a hotkey"
-        Target="[INSTALLFOLDER]DndHotkey.App.exe"
-        WorkingDirectory="INSTALLFOLDER" />
-      <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
-      <RegistryValue
-        Root="HKCU"
-        Key="Software\Dustyn Gilliland\DndHotkey"
-        Name="installed"
-        Type="integer"
-        Value="1"
-        KeyPath="yes" />
-    </Component>
-  </Package>
+        <StandardDirectory Id="LocalAppDataFolder">
+            <Directory Id="ProgramsFolder" Name="Programs">
+                <Directory Id="INSTALLFOLDER" Name="DndHotkey"/>
+            </Directory>
+        </StandardDirectory>
+
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="ApplicationProgramsFolder" Name="DndHotkey"/>
+        </StandardDirectory>
+
+        <Feature Id="MainFeature" Title="DndHotkey" Level="1">
+            <ComponentGroupRef Id="ApplicationComponents"/>
+            <ComponentRef Id="StartupRegistration"/>
+            <ComponentRef Id="StartMenuShortcut"/>
+        </Feature>
+
+        <ComponentGroup Id="ApplicationComponents" Directory="INSTALLFOLDER">
+            <Component Id="ApplicationExecutable">
+                <File Id="DndHotkeyExe" Source="$(var.PublishDir)\DndHotkey.App.exe" KeyPath="yes"/>
+            </Component>
+        </ComponentGroup>
+
+        <Component Id="StartupRegistration" Directory="INSTALLFOLDER">
+            <RegistryValue
+                Root="HKCU"
+                Key="Software\Microsoft\Windows\CurrentVersion\Run"
+                Name="DndHotkey"
+                Type="string"
+                Value="&quot;[INSTALLFOLDER]DndHotkey.App.exe&quot;"
+                KeyPath="yes"/>
+        </Component>
+
+        <Component Id="StartMenuShortcut" Directory="ApplicationProgramsFolder">
+            <Shortcut
+                Id="ApplicationStartMenuShortcut"
+                Name="DndHotkey"
+                Description="Toggle Windows Do Not Disturb with a hotkey"
+                Target="[INSTALLFOLDER]DndHotkey.App.exe"
+                WorkingDirectory="INSTALLFOLDER"/>
+            <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall"/>
+            <RegistryValue
+                Root="HKCU"
+                Key="Software\Dustyn Gilliland\DndHotkey"
+                Name="installed"
+                Type="integer"
+                Value="1"
+                KeyPath="yes"/>
+        </Component>
+    </Package>
 </Wix>

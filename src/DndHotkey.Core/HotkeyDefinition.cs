@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace DndHotkey.Core;
 
 public sealed record HotkeyDefinition(HotkeyModifiers Modifiers, string Key)

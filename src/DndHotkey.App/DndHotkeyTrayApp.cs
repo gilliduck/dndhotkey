@@ -1,21 +1,22 @@
 using System.Windows;
 using DndHotkey.Core;
+using Application = System.Windows.Application;
 using Directory = System.IO.Directory;
-using WinForms = System.Windows.Forms;
+using MessageBox = System.Windows.MessageBox;
 
 namespace DndHotkey.App;
 
 internal sealed class DndHotkeyTrayApp : IDisposable
 {
+    private AppConfig config = new();
     private readonly ConfigStore configStore;
     private readonly IDndController dndController;
+    private IHotkeyRegistrar? hotkeyRegistrar;
     private readonly Func<IHotkeyRegistrar> hotkeyRegistrarFactory;
+    private NotifyIcon? notifyIcon;
     private readonly OverlayNotifier overlayNotifier;
     private readonly ShellLauncher shellLauncher;
     private readonly StartupRegistration startupRegistration;
-    private WinForms.NotifyIcon? notifyIcon;
-    private IHotkeyRegistrar? hotkeyRegistrar;
-    private AppConfig config = new();
 
     public DndHotkeyTrayApp(
         ConfigStore configStore,
@@ -33,14 +34,6 @@ internal sealed class DndHotkeyTrayApp : IDisposable
         this.startupRegistration = startupRegistration;
     }
 
-    public void Start()
-    {
-        config = LoadConfigOrDefault();
-        RegisterHotkey();
-        notifyIcon = CreateNotifyIcon();
-        UpdateNotifyIconText();
-    }
-
     public void Dispose()
     {
         hotkeyRegistrar?.Dispose();
@@ -51,42 +44,24 @@ internal sealed class DndHotkeyTrayApp : IDisposable
         }
     }
 
-    private AppConfig LoadConfigOrDefault()
+    public void Start()
     {
-        try
-        {
-            return configStore.LoadOrCreate();
-        }
-        catch (ConfigException exception)
-        {
-            System.Windows.MessageBox.Show(
-                $"{exception.Message}\n\nDndHotkey will keep running with default settings until the config is fixed and reloaded.",
-                "DndHotkey configuration",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
-            shellLauncher.OpenFile(configStore.ConfigPath);
-            return new AppConfig();
-        }
+        config = LoadConfigOrDefault();
+        RegisterHotkey();
+        notifyIcon = CreateNotifyIcon();
+        UpdateNotifyIconText();
     }
 
-    private void RegisterHotkey()
+    private NotifyIcon CreateNotifyIcon()
     {
-        hotkeyRegistrar?.Dispose();
-        hotkeyRegistrar = hotkeyRegistrarFactory();
-        hotkeyRegistrar.HotkeyPressed += OnHotkeyPressed;
-        hotkeyRegistrar.Register(HotkeyParser.Parse(config.Hotkey));
-    }
-
-    private WinForms.NotifyIcon CreateNotifyIcon()
-    {
-        var contextMenu = new WinForms.ContextMenuStrip();
+        var contextMenu = new ContextMenuStrip();
         contextMenu.Items.Add("Toggle Do Not Disturb", null, (_, _) => ToggleDnd());
         contextMenu.Items.Add("Open config file", null, (_, _) => OpenConfigFile());
         contextMenu.Items.Add("Open config folder", null, (_, _) => OpenConfigFolder());
         contextMenu.Items.Add("Reload config", null, (_, _) => ReloadConfig());
-        contextMenu.Items.Add(new WinForms.ToolStripSeparator());
+        contextMenu.Items.Add(new ToolStripSeparator());
 
-        var startupItem = new WinForms.ToolStripMenuItem("Start with Windows")
+        var startupItem = new ToolStripMenuItem("Start with Windows")
         {
             CheckOnClick = true,
             Checked = startupRegistration.IsEnabled()
@@ -103,18 +78,18 @@ internal sealed class DndHotkeyTrayApp : IDisposable
             }
         };
         contextMenu.Items.Add(startupItem);
-        contextMenu.Items.Add(new WinForms.ToolStripSeparator());
-        contextMenu.Items.Add("Quit", null, (_, _) => System.Windows.Application.Current.Shutdown());
+        contextMenu.Items.Add(new ToolStripSeparator());
+        contextMenu.Items.Add("Quit", null, (_, _) => Application.Current.Shutdown());
 
-        var icon = new WinForms.NotifyIcon
+        var icon = new NotifyIcon
         {
             ContextMenuStrip = contextMenu,
-            Icon = System.Drawing.SystemIcons.Application,
+            Icon = SystemIcons.Application,
             Visible = true
         };
         icon.MouseClick += (_, args) =>
         {
-            if (args.Button == WinForms.MouseButtons.Left)
+            if (args.Button == MouseButtons.Left)
             {
                 ToggleDnd();
             }
@@ -122,9 +97,55 @@ internal sealed class DndHotkeyTrayApp : IDisposable
         return icon;
     }
 
+    private AppConfig LoadConfigOrDefault()
+    {
+        try
+        {
+            return configStore.LoadOrCreate();
+        }
+        catch (ConfigException exception)
+        {
+            MessageBox.Show(
+                $"{exception.Message}\n\nDndHotkey will keep running with default settings until the config is fixed and reloaded.",
+                "DndHotkey configuration",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            shellLauncher.OpenFile(configStore.ConfigPath);
+            return new AppConfig();
+        }
+    }
+
     private void OnHotkeyPressed(object? sender, HotkeyPressedEventArgs e)
     {
-        System.Windows.Application.Current.Dispatcher.Invoke(ToggleDnd);
+        Application.Current.Dispatcher.Invoke(ToggleDnd);
+    }
+
+    private void OpenConfigFile()
+    {
+        configStore.LoadOrCreate();
+        shellLauncher.OpenFile(configStore.ConfigPath);
+    }
+
+    private void OpenConfigFolder()
+    {
+        Directory.CreateDirectory(configStore.ConfigDirectory);
+        shellLauncher.OpenFolder(configStore.ConfigDirectory);
+    }
+
+    private void RegisterHotkey()
+    {
+        hotkeyRegistrar?.Dispose();
+        hotkeyRegistrar = hotkeyRegistrarFactory();
+        hotkeyRegistrar.HotkeyPressed += OnHotkeyPressed;
+        hotkeyRegistrar.Register(HotkeyParser.Parse(config.Hotkey));
+    }
+
+    private void ReloadConfig()
+    {
+        config = LoadConfigOrDefault();
+        RegisterHotkey();
+        overlayNotifier.Show(DndState.Unknown, TimeSpan.FromMilliseconds(900), "Config reloaded");
+        UpdateNotifyIconText();
     }
 
     private void ToggleDnd()
@@ -140,33 +161,13 @@ internal sealed class DndHotkeyTrayApp : IDisposable
         }
         catch (Exception exception)
         {
-            System.Windows.MessageBox.Show(
+            MessageBox.Show(
                 $"{exception.Message}\n\nWindows notification settings will open so you can toggle Do Not Disturb manually.",
                 "DndHotkey",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             shellLauncher.OpenNotificationSettings();
         }
-    }
-
-    private void OpenConfigFile()
-    {
-        configStore.LoadOrCreate();
-        shellLauncher.OpenFile(configStore.ConfigPath);
-    }
-
-    private void OpenConfigFolder()
-    {
-        Directory.CreateDirectory(configStore.ConfigDirectory);
-        shellLauncher.OpenFolder(configStore.ConfigDirectory);
-    }
-
-    private void ReloadConfig()
-    {
-        config = LoadConfigOrDefault();
-        RegisterHotkey();
-        overlayNotifier.Show(DndState.Unknown, TimeSpan.FromMilliseconds(900), "Config reloaded");
-        UpdateNotifyIconText();
     }
 
     private void UpdateNotifyIconText()
@@ -178,9 +179,9 @@ internal sealed class DndHotkeyTrayApp : IDisposable
 
         notifyIcon.Text = dndController.GetState() switch
         {
-            DndState.Enabled => "DndHotkey - Do Not Disturb enabled",
+            DndState.Enabled  => "DndHotkey - Do Not Disturb enabled",
             DndState.Disabled => "DndHotkey - Do Not Disturb disabled",
-            _ => "DndHotkey - Do Not Disturb state unknown"
+            _                 => "DndHotkey - Do Not Disturb state unknown"
         };
     }
 }

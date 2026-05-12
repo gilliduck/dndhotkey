@@ -1,15 +1,23 @@
+using System.Windows;
 using DndHotkey.Core;
+using Application = System.Windows.Application;
 
 namespace DndHotkey.App;
 
-public partial class App : System.Windows.Application
+public partial class App : Application
 {
     private DndHotkeyTrayApp? trayApp;
 
-    protected override void OnStartup(System.Windows.StartupEventArgs e)
+    protected override void OnExit(ExitEventArgs e)
+    {
+        trayApp?.Dispose();
+        base.OnExit(e);
+    }
+
+    protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown;
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
         var configStore = new ConfigStore();
         var shellLauncher = new ShellLauncher();
@@ -30,11 +38,5 @@ public partial class App : System.Windows.Application
             shellLauncher,
             new StartupRegistration());
         trayApp.Start();
-    }
-
-    protected override void OnExit(System.Windows.ExitEventArgs e)
-    {
-        trayApp?.Dispose();
-        base.OnExit(e);
     }
 }

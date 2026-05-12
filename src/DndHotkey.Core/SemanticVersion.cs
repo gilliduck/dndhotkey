@@ -4,6 +4,11 @@ namespace DndHotkey.Core;
 
 public readonly record struct SemanticVersion(int Major, int Minor, int Patch)
 {
+    public override string ToString()
+    {
+        return $"{Major}.{Minor}.{Patch}";
+    }
+
     public static SemanticVersion Parse(string value)
     {
         var parts = value.Split('.', StringSplitOptions.TrimEntries);
@@ -17,6 +22,4 @@ public readonly record struct SemanticVersion(int Major, int Minor, int Patch)
             int.Parse(parts[1], CultureInfo.InvariantCulture),
             int.Parse(parts[2], CultureInfo.InvariantCulture));
     }
-
-    public override string ToString() => $"{Major}.{Minor}.{Patch}";
 }

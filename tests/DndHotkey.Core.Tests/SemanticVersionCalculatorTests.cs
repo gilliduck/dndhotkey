@@ -3,13 +3,13 @@ namespace DndHotkey.Core.Tests;
 public sealed class SemanticVersionCalculatorTests
 {
     [Fact]
-    public void NextVersion_UsesMinorForFeatureCommit()
+    public void NextVersion_ReturnsNullForNonReleaseCommits()
     {
         var next = SemanticVersionCalculator.NextVersion(
             SemanticVersion.Parse("1.2.3"),
-            [new CommitMessage("feat: add tray menu")]);
+            [new CommitMessage("docs: update readme")]);
 
-        Assert.Equal("1.3.0", next?.ToString());
+        Assert.Null(next);
     }
 
     [Fact]
@@ -23,12 +23,12 @@ public sealed class SemanticVersionCalculatorTests
     }
 
     [Fact]
-    public void NextVersion_ReturnsNullForNonReleaseCommits()
+    public void NextVersion_UsesMinorForFeatureCommit()
     {
         var next = SemanticVersionCalculator.NextVersion(
             SemanticVersion.Parse("1.2.3"),
-            [new CommitMessage("docs: update readme")]);
+            [new CommitMessage("feat: add tray menu")]);
 
-        Assert.Null(next);
+        Assert.Equal("1.3.0", next?.ToString());
     }
 }

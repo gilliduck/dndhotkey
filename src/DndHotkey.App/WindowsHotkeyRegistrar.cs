@@ -2,19 +2,33 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using DndHotkey.Core;
-using WinForms = System.Windows.Forms;
 
 namespace DndHotkey.App;
 
 internal sealed class WindowsHotkeyRegistrar : IHotkeyRegistrar
 {
-    private const int WmHotkey = 0x0312;
     private const uint ModNoRepeat = 0x4000;
+    private const int WmHotkey = 0x0312;
     private static int nextId;
-    private readonly int id = Interlocked.Increment(ref nextId);
-    private HwndSource? source;
     private HotkeyDefinition? hotkey;
+    private readonly int id = Interlocked.Increment(ref nextId);
     private bool registered;
+    private HwndSource? source;
+
+    public void Dispose()
+    {
+        if (registered && source is not null)
+        {
+            UnregisterHotKey(source.Handle, id);
+            registered = false;
+        }
+
+        if (source is not null)
+        {
+            source.RemoveHook(WndProc);
+            source.Dispose();
+        }
+    }
 
     public event EventHandler<HotkeyPressedEventArgs>? HotkeyPressed;
 
@@ -37,31 +51,9 @@ internal sealed class WindowsHotkeyRegistrar : IHotkeyRegistrar
         registered = true;
     }
 
-    public void Dispose()
-    {
-        if (registered && source is not null)
-        {
-            UnregisterHotKey(source.Handle, id);
-            registered = false;
-        }
-
-        if (source is not null)
-        {
-            source.RemoveHook(WndProc);
-            source.Dispose();
-        }
-    }
-
-    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-    {
-        if (msg == WmHotkey && wParam.ToInt32() == id && hotkey is not null)
-        {
-            HotkeyPressed?.Invoke(this, new HotkeyPressedEventArgs(hotkey));
-            handled = true;
-        }
-
-        return IntPtr.Zero;
-    }
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
 
     private static uint ToNativeModifiers(HotkeyModifiers modifiers)
     {
@@ -91,7 +83,7 @@ internal sealed class WindowsHotkeyRegistrar : IHotkeyRegistrar
 
     private static uint ToVirtualKey(string key)
     {
-        if (Enum.TryParse<WinForms.Keys>(key, ignoreCase: true, out var parsed))
+        if (Enum.TryParse<Keys>(key, true, out var parsed))
         {
             return (uint)parsed;
         }
@@ -101,9 +93,16 @@ internal sealed class WindowsHotkeyRegistrar : IHotkeyRegistrar
 
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
-
-    [DllImport("user32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (msg == WmHotkey && wParam.ToInt32() == id && hotkey is not null)
+        {
+            HotkeyPressed?.Invoke(this, new HotkeyPressedEventArgs(hotkey));
+            handled = true;
+        }
+
+        return IntPtr.Zero;
+    }
 }

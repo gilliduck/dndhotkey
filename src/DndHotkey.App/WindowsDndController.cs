@@ -6,11 +6,11 @@ namespace DndHotkey.App;
 
 internal sealed class WindowsDndController : IDndController
 {
-    private const string NotificationsQuietHoursKey =
-        @"Software\Microsoft\Windows\CurrentVersion\CloudStore\Store\Cache\DefaultAccount\$$windows.data.notifications.quiethourssettings\Current";
-
     private const string DoNotDisturbQuietHoursKey =
         @"Software\Microsoft\Windows\CurrentVersion\CloudStore\Store\DefaultAccount\Current\default$windows.data.donotdisturb.quiethourssettings\windows.data.donotdisturb.quiethourssettings";
+
+    private const string NotificationsQuietHoursKey =
+        @"Software\Microsoft\Windows\CurrentVersion\CloudStore\Store\Cache\DefaultAccount\$$windows.data.notifications.quiethourssettings\Current";
 
     private static readonly string[] ReadKeys =
     [
@@ -48,8 +48,9 @@ internal sealed class WindowsDndController : IDndController
         var existing = ReadKeys.Select(ReadData).FirstOrDefault(data => data is not null) ?? [];
         var updated = QuietHoursProfileData.SetState(existing, state, DateTimeOffset.UtcNow);
 
-        using var key = Registry.CurrentUser.CreateSubKey(NotificationsQuietHoursKey, writable: true)
-            ?? throw new InvalidOperationException("Could not open the Windows Do Not Disturb registry key.");
+        using var key = Registry.CurrentUser.CreateSubKey(NotificationsQuietHoursKey, true)
+                        ?? throw new InvalidOperationException(
+                            "Could not open the Windows Do Not Disturb registry key.");
         key.SetValue("Data", updated, RegistryValueKind.Binary);
 
         BroadcastSettingsChanged();
@@ -64,12 +65,6 @@ internal sealed class WindowsDndController : IDndController
         return SetState(target);
     }
 
-    private static byte[]? ReadData(string keyPath)
-    {
-        using var key = Registry.CurrentUser.OpenSubKey(keyPath, writable: false);
-        return key?.GetValue("Data") as byte[];
-    }
-
     private static void BroadcastSettingsChanged()
     {
         _ = SendMessageTimeout(
@@ -80,6 +75,12 @@ internal sealed class WindowsDndController : IDndController
             0x0002,
             1000,
             out _);
+    }
+
+    private static byte[]? ReadData(string keyPath)
+    {
+        using var key = Registry.CurrentUser.OpenSubKey(keyPath, false);
+        return key?.GetValue("Data") as byte[];
     }
 
     [DllImport("user32.dll", EntryPoint = "SendMessageTimeoutW", CharSet = CharSet.Unicode, SetLastError = true)]

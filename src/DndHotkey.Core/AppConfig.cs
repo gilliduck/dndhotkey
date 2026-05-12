@@ -4,9 +4,9 @@ public sealed record AppConfig
 {
     public string Hotkey { get; init; } = "Ctrl+Alt+D";
 
-    public bool ShowOverlay { get; init; } = true;
-
     public int OverlayMilliseconds { get; init; } = 1400;
+
+    public bool ShowOverlay { get; init; } = true;
 
     public bool StartMinimized { get; init; } = true;
 

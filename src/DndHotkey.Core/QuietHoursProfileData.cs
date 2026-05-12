@@ -7,6 +7,11 @@ public static class QuietHoursProfileData
     public const string PriorityOnlyProfile = "Microsoft.QuietHoursProfile.PriorityOnly";
     public const string UnrestrictedProfile = "Microsoft.QuietHoursProfile.Unrestricted";
 
+    private static readonly byte[] AfterProfile =
+    [
+        0x00, 0xCA, 0x28, 0x00, 0x00
+    ];
+
     private static readonly byte[] BeforeProfile =
     [
         0x00, 0x00, 0x00, 0x00,
@@ -15,15 +20,11 @@ public static class QuietHoursProfileData
         0x14, 0x28
     ];
 
-    private static readonly byte[] AfterProfile =
-    [
-        0x00, 0xCA, 0x28, 0x00, 0x00
-    ];
-
     public static byte[] Build(DndState state, DateTimeOffset timestamp)
     {
         var profile = ProfileForState(state);
-        var result = new List<byte>(4 + 8 + BeforeProfile.Length + Encoding.Unicode.GetByteCount(profile) + AfterProfile.Length)
+        var result = new List<byte>(4 + 8 + BeforeProfile.Length + Encoding.Unicode.GetByteCount(profile) +
+                                    AfterProfile.Length)
         {
             0x02,
             0x00,
@@ -72,18 +73,23 @@ public static class QuietHoursProfileData
         return replaced;
     }
 
-    private static string ProfileForState(DndState state) =>
-        state switch
+    private static bool Contains(ReadOnlySpan<byte> haystack, ReadOnlySpan<byte> needle)
+    {
+        return haystack.IndexOf(needle) >= 0;
+    }
+
+    private static string ProfileForState(DndState state)
+    {
+        return state switch
         {
             DndState.Enabled => PriorityOnlyProfile,
             DndState.Disabled => UnrestrictedProfile,
             _ => throw new ArgumentOutOfRangeException(nameof(state), state, "State must be enabled or disabled.")
         };
+    }
 
-    private static bool Contains(ReadOnlySpan<byte> haystack, ReadOnlySpan<byte> needle) =>
-        haystack.IndexOf(needle) >= 0;
-
-    private static byte[] ReplaceFirst(ReadOnlySpan<byte> source, ReadOnlySpan<byte> oldValue, ReadOnlySpan<byte> newValue)
+    private static byte[] ReplaceFirst(ReadOnlySpan<byte> source, ReadOnlySpan<byte> oldValue,
+                                       ReadOnlySpan<byte> newValue)
     {
         var index = source.IndexOf(oldValue);
         if (index < 0)

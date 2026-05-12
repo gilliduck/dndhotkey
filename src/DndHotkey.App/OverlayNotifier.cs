@@ -5,9 +5,9 @@ namespace DndHotkey.App;
 
 internal sealed class OverlayNotifier
 {
-    private readonly Dispatcher dispatcher;
-    private OverlayWindow? currentWindow;
     private DispatcherTimer? closeTimer;
+    private OverlayWindow? currentWindow;
+    private readonly Dispatcher dispatcher;
 
     public OverlayNotifier(Dispatcher dispatcher)
     {
@@ -23,9 +23,9 @@ internal sealed class OverlayNotifier
 
             var message = customMessage ?? state switch
             {
-                DndState.Enabled => "Do Not Disturb enabled",
+                DndState.Enabled  => "Do Not Disturb enabled",
                 DndState.Disabled => "Do Not Disturb disabled",
-                _ => "Do Not Disturb state unknown"
+                _                 => "Do Not Disturb state unknown"
             };
 
             currentWindow = new OverlayWindow();

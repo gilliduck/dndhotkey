@@ -12,9 +12,9 @@ public static class HotkeyParser
         }
 
         var tokens = value
-            .Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(token => token.Length > 0)
-            .ToArray();
+                     .Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                     .Where(token => token.Length > 0)
+                     .ToArray();
 
         if (tokens.Length < 2)
         {
@@ -53,19 +53,6 @@ public static class HotkeyParser
         return new HotkeyDefinition(modifiers, key);
     }
 
-    private static bool TryParseModifier(string token, out HotkeyModifiers modifier)
-    {
-        modifier = token.ToUpperInvariant() switch
-        {
-            "ALT" => HotkeyModifiers.Alt,
-            "CTRL" or "CONTROL" => HotkeyModifiers.Control,
-            "SHIFT" => HotkeyModifiers.Shift,
-            "WIN" or "WINDOWS" or "META" => HotkeyModifiers.Windows,
-            _ => HotkeyModifiers.None
-        };
-        return modifier is not HotkeyModifiers.None;
-    }
-
     private static string NormalizeKey(string token)
     {
         var normalized = token.Trim();
@@ -88,5 +75,18 @@ public static class HotkeyParser
         }
 
         throw new HotkeyParseException($"'{token}' is not a valid key.");
+    }
+
+    private static bool TryParseModifier(string token, out HotkeyModifiers modifier)
+    {
+        modifier = token.ToUpperInvariant() switch
+        {
+            "ALT"                        => HotkeyModifiers.Alt,
+            "CTRL" or "CONTROL"          => HotkeyModifiers.Control,
+            "SHIFT"                      => HotkeyModifiers.Shift,
+            "WIN" or "WINDOWS" or "META" => HotkeyModifiers.Windows,
+            _                            => HotkeyModifiers.None
+        };
+        return modifier is not HotkeyModifiers.None;
     }
 }

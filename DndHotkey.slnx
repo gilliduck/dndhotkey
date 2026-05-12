@@ -1,10 +1,11 @@
 <Solution>
-  <Folder Name="/src/">
-    <Project Path="src/DndHotkey.App/DndHotkey.App.csproj" />
-    <Project Path="src/DndHotkey.Core/DndHotkey.Core.csproj" />
-    <Project Path="src/DndHotkey.Installer/DndHotkey.Installer.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/DndHotkey.Core.Tests/DndHotkey.Core.Tests.csproj" />
-  </Folder>
+    <Folder Name="/src/">
+        <Project Path="src/DndHotkey.App/DndHotkey.App.csproj"/>
+        <Project Path="src/DndHotkey.Core/DndHotkey.Core.csproj"/>
+        <Project Path="src/DndHotkey.Installer/DndHotkey.Installer.wixproj"
+                 Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0"/>
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/DndHotkey.Core.Tests/DndHotkey.Core.Tests.csproj"/>
+    </Folder>
 </Solution>

@@ -43,19 +43,6 @@ public sealed class ConfigStoreTests
     }
 
     [Fact]
-    public void LoadOrCreate_RejectsInvalidJson()
-    {
-        using var directory = TempDirectory.Create();
-        var store = new ConfigStore(directory.Path);
-        Directory.CreateDirectory(directory.Path);
-        File.WriteAllText(store.ConfigPath, "{ nope");
-
-        var exception = Assert.Throws<ConfigException>(() => store.LoadOrCreate());
-
-        Assert.Contains("invalid JSON", exception.Message);
-    }
-
-    [Fact]
     public void LoadOrCreate_RejectsInvalidHotkey()
     {
         using var directory = TempDirectory.Create();
@@ -73,5 +60,18 @@ public sealed class ConfigStoreTests
             """);
 
         Assert.Throws<ConfigException>(() => store.LoadOrCreate());
+    }
+
+    [Fact]
+    public void LoadOrCreate_RejectsInvalidJson()
+    {
+        using var directory = TempDirectory.Create();
+        var store = new ConfigStore(directory.Path);
+        Directory.CreateDirectory(directory.Path);
+        File.WriteAllText(store.ConfigPath, "{ nope");
+
+        var exception = Assert.Throws<ConfigException>(() => store.LoadOrCreate());
+
+        Assert.Contains("invalid JSON", exception.Message);
     }
 }

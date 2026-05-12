@@ -12,6 +12,10 @@ public sealed class ConfigStore
         WriteIndented = true
     };
 
+    public string ConfigDirectory { get; }
+
+    public string ConfigPath { get; }
+
     public ConfigStore(string? configDirectory = null)
     {
         ConfigDirectory = configDirectory ?? Path.Combine(
@@ -19,10 +23,6 @@ public sealed class ConfigStore
             "DndHotkey");
         ConfigPath = Path.Combine(ConfigDirectory, "config.json");
     }
-
-    public string ConfigDirectory { get; }
-
-    public string ConfigPath { get; }
 
     public AppConfig LoadOrCreate()
     {

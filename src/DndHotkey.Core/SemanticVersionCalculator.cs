@@ -14,9 +14,38 @@ public static partial class SemanticVersionCalculator
             ReleaseBumpKind.Major => new SemanticVersion(current.Major + 1, 0, 0),
             ReleaseBumpKind.Minor => new SemanticVersion(current.Major, current.Minor + 1, 0),
             ReleaseBumpKind.Patch => new SemanticVersion(current.Major, current.Minor, current.Patch + 1),
-            _ => null
+            _                     => null
         };
     }
+
+    [GeneratedRegex(@"^BREAKING CHANGE:", RegexOptions.Multiline)]
+    private static partial Regex BreakingBody();
+
+    [GeneratedRegex(@"^[a-zA-Z]+(\([^)]+\))?!:")]
+    private static partial Regex BreakingSubject();
+
+    [GeneratedRegex(@"^feat(\([^)]+\))?:")]
+    private static partial Regex FeatureSubject();
+
+    private static bool IsBreakingChange(CommitMessage commit)
+    {
+        return BreakingSubject().IsMatch(commit.Subject) ||
+               BreakingBody().IsMatch(commit.Body);
+    }
+
+    private static bool IsReleaseEligible(CommitMessage commit)
+    {
+        return !SkipRelease().IsMatch(commit.Subject) &&
+               !ReleaseChore().IsMatch(commit.Subject);
+    }
+
+    private static ReleaseBumpKind Max(ReleaseBumpKind left, ReleaseBumpKind right)
+    {
+        return left > right ? left : right;
+    }
+
+    [GeneratedRegex(@"^(fix|perf)(\([^)]+\))?:")]
+    private static partial Regex PatchSubject();
 
     private static ReleaseBumpKind ReleaseBump(IEnumerable<CommitMessage> commits)
     {
@@ -41,34 +70,11 @@ public static partial class SemanticVersionCalculator
         return bump;
     }
 
-    private static bool IsReleaseEligible(CommitMessage commit) =>
-        !SkipRelease().IsMatch(commit.Subject) &&
-        !ReleaseChore().IsMatch(commit.Subject);
-
-    private static bool IsBreakingChange(CommitMessage commit) =>
-        BreakingSubject().IsMatch(commit.Subject) ||
-        BreakingBody().IsMatch(commit.Body);
-
-    private static ReleaseBumpKind Max(ReleaseBumpKind left, ReleaseBumpKind right) =>
-        left > right ? left : right;
-
-    [GeneratedRegex(@"\[skip-release\]|\[skip release\]", RegexOptions.IgnoreCase)]
-    private static partial Regex SkipRelease();
-
     [GeneratedRegex(@"^chore\(release\):", RegexOptions.IgnoreCase)]
     private static partial Regex ReleaseChore();
 
-    [GeneratedRegex(@"^[a-zA-Z]+(\([^)]+\))?!:")]
-    private static partial Regex BreakingSubject();
-
-    [GeneratedRegex(@"^BREAKING CHANGE:", RegexOptions.Multiline)]
-    private static partial Regex BreakingBody();
-
-    [GeneratedRegex(@"^feat(\([^)]+\))?:")]
-    private static partial Regex FeatureSubject();
-
-    [GeneratedRegex(@"^(fix|perf)(\([^)]+\))?:")]
-    private static partial Regex PatchSubject();
+    [GeneratedRegex(@"\[skip-release\]|\[skip release\]", RegexOptions.IgnoreCase)]
+    private static partial Regex SkipRelease();
 
     private enum ReleaseBumpKind
     {
