@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  release:
+    name: Build release
+    runs-on: windows-latest
+    if: ${{ !contains(github.event.head_commit.message, '[skip-release]') && !startsWith(github.event.head_commit.message, 'chore(release):') }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore DndHotkey.slnx
+
+      - name: Test
+        run: dotnet test tests\DndHotkey.Core.Tests\DndHotkey.Core.Tests.csproj -c Release --no-restore
+
+      - name: Prepare release version
+        id: version
+        shell: pwsh
+        run: |
+          $version = ./scripts/semantic-version.ps1 prepare
+          if ($version -eq "No release-worthy Conventional Commits found.") {
+            "released=false" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md Directory.Build.props
+          git commit -m "chore(release): $version [skip-release]"
+          git tag $version
+          git push origin HEAD:main $version
+
+          "released=true" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Publish app
+        if: steps.version.outputs.released == 'true'
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          dotnet publish src\DndHotkey.App\DndHotkey.App.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:PublishTrimmed=false `
+            -p:Version=$version `
+            -p:AssemblyVersion=$version `
+            -p:FileVersion=$version `
+            -p:InformationalVersion="$version+$env:GITHUB_SHA" `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            -o artifacts\publish\win-x64
+
+      - name: Build MSI
+        if: steps.version.outputs.released == 'true'
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $publishDir = Join-Path $PWD "artifacts\publish\win-x64"
+          dotnet build src\DndHotkey.Installer\DndHotkey.Installer.wixproj `
+            -c Release `
+            --no-restore `
+            -p:ProductVersion=$version `
+            -p:PublishDir=$publishDir
+
+      - name: Package release assets
+        if: steps.version.outputs.released == 'true'
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path artifacts\publish\win-x64\* -DestinationPath "dist\DndHotkey-$version-win-x64.zip" -Force
+          Copy-Item src\DndHotkey.Installer\bin\Release\DndHotkey.msi "dist\DndHotkey-$version-win-x64.msi"
+          Get-ChildItem dist -File | Where-Object { $_.Extension -ne ".sha256" } | ForEach-Object {
+            $hash = Get-FileHash $_.FullName -Algorithm SHA256
+            "$($hash.Hash.ToLowerInvariant())  $($_.Name)" | Set-Content -NoNewline "$($_.FullName).sha256"
+          }
+
+      - name: Create GitHub release
+        if: steps.version.outputs.released == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          gh release create $version dist\* --title "DndHotkey $version" --generate-notes

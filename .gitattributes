@@ -1,0 +1,19 @@
+* text=auto eol=lf
+
+*.slnx text eol=lf
+*.cs text eol=lf
+*.csproj text eol=lf
+*.props text eol=lf
+*.wixproj text eol=lf
+*.wxs text eol=lf
+*.xaml text eol=lf
+*.ps1 text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+*.png binary
+*.ico binary
+*.msi binary
+*.zip binary
