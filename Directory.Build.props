@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <Company>Dustyn Gilliland</Company>
+    <Authors>Dustyn Gilliland</Authors>
+    <Product>DndHotkey</Product>
+    <Version>0.1.0</Version>
+    <AssemblyVersion>0.1.0</AssemblyVersion>
+    <FileVersion>0.1.0</FileVersion>
+    <InformationalVersion>0.1.0</InformationalVersion>
+    <RepositoryUrl>https://github.com/gilliduck/dndhotkey</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>Copyright (c) Dustyn Gilliland</Copyright>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>

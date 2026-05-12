@@ -1,0 +1,10 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <PropertyGroup>
+    <OutputName>DndHotkey</OutputName>
+    <OutputType>Package</OutputType>
+    <ProductVersion>$(Version)</ProductVersion>
+    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\publish\win-x64</PublishDir>
+    <DefineConstants>ProductVersion=$(ProductVersion);PublishDir=$(PublishDir)</DefineConstants>
+    <SuppressValidation>true</SuppressValidation>
+  </PropertyGroup>
+</Project>
