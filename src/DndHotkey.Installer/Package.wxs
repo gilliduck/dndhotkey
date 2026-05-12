@@ -8,6 +8,8 @@
         <SummaryInformation Description="DndHotkey installer" Manufacturer="Dustyn Gilliland"/>
         <MajorUpgrade DowngradeErrorMessage="A newer version of DndHotkey is already installed."/>
         <MediaTemplate EmbedCab="yes"/>
+        <Icon Id="AppIcon" SourceFile="..\DndHotkey.App\Assets\AppIcon.ico"/>
+        <Property Id="ARPPRODUCTICON" Value="AppIcon"/>
 
         <StandardDirectory Id="LocalAppDataFolder">
             <Directory Id="ProgramsFolder" Name="Programs">
@@ -47,6 +49,7 @@
                 Name="DndHotkey"
                 Description="Toggle Windows Do Not Disturb with a hotkey"
                 Target="[INSTALLFOLDER]DndHotkey.App.exe"
+                Icon="AppIcon"
                 WorkingDirectory="INSTALLFOLDER"/>
             <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall"/>
             <RegistryValue

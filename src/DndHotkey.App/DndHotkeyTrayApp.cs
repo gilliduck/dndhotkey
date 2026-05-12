@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Windows;
 using DndHotkey.Core;
 using Application = System.Windows.Application;
@@ -14,6 +15,7 @@ internal sealed class DndHotkeyTrayApp : IDisposable
     private IHotkeyRegistrar? hotkeyRegistrar;
     private readonly Func<IHotkeyRegistrar> hotkeyRegistrarFactory;
     private NotifyIcon? notifyIcon;
+    private Icon? trayIcon;
     private readonly OverlayNotifier overlayNotifier;
     private readonly ShellLauncher shellLauncher;
     private readonly StartupRegistration startupRegistration;
@@ -42,6 +44,8 @@ internal sealed class DndHotkeyTrayApp : IDisposable
             notifyIcon.Visible = false;
             notifyIcon.Dispose();
         }
+
+        trayIcon?.Dispose();
     }
 
     public void Start()
@@ -81,10 +85,11 @@ internal sealed class DndHotkeyTrayApp : IDisposable
         contextMenu.Items.Add(new ToolStripSeparator());
         contextMenu.Items.Add("Quit", null, (_, _) => Application.Current.Shutdown());
 
+        trayIcon = CreateTrayIcon();
         var icon = new NotifyIcon
         {
             ContextMenuStrip = contextMenu,
-            Icon = SystemIcons.Application,
+            Icon = trayIcon,
             Visible = true
         };
         icon.MouseClick += (_, args) =>
@@ -95,6 +100,28 @@ internal sealed class DndHotkeyTrayApp : IDisposable
             }
         };
         return icon;
+    }
+
+    private static Icon CreateTrayIcon()
+    {
+        try
+        {
+            var processPath = Environment.ProcessPath;
+            if (!string.IsNullOrWhiteSpace(processPath) && System.IO.File.Exists(processPath))
+            {
+                var icon = Icon.ExtractAssociatedIcon(processPath);
+                if (icon is not null)
+                {
+                    return icon;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Tray startup should not fail just because Windows cannot extract the exe icon.
+        }
+
+        return (Icon)SystemIcons.Application.Clone();
     }
 
     private AppConfig LoadConfigOrDefault()
