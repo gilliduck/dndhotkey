@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DndHotkey.App/DndHotkey.App.csproj" />
+    <Project Path="src/DndHotkey.Core/DndHotkey.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DndHotkey.Core.Tests/DndHotkey.Core.Tests.csproj" />
+  </Folder>
+</Solution>
